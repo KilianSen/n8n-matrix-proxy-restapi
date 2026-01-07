@@ -851,8 +851,8 @@ export class MatrixBot implements INodeType {
 				// Make the API request
 				const options = {
 					method,
-					body: Object.keys(body).length > 0 ? body : undefined,
-					qs: Object.keys(qs).length > 0 ? qs : undefined,
+					body: body && Object.keys(body).length > 0 ? body : undefined,
+					qs: qs && Object.keys(qs).length > 0 ? qs : undefined,
 					uri: `${baseUrl}${endpoint}`,
 					json: true,
 				};

@@ -77,9 +77,9 @@ export class MatrixBotTrigger implements INodeType {
 	async trigger(this: ITriggerFunctions): Promise<ITriggerResponse> {
 		const pollInterval = this.getNodeParameter('pollInterval') as number;
 		const options = this.getNodeParameter('options', {}) as IDataObject;
-		const returnAllOnFirstPoll = options.returnAllOnFirstPoll as boolean || false;
-		const filterByRoom = options.filterByRoom as string || '';
-		const filterBySender = options.filterBySender as string || '';
+		const returnAllOnFirstPoll = options.returnAllOnFirstPoll ?? false;
+		const filterByRoom = (options.filterByRoom as string) || '';
+		const filterBySender = (options.filterBySender as string) || '';
 
 		const credentials = await this.getCredentials('matrixBotApi');
 		const baseUrl = credentials.apiUrl as string;
