@@ -4,6 +4,7 @@ import {
 	INodeTypeDescription,
 	ITriggerResponse,
 	IDataObject,
+	IHttpRequestMethods,
 } from 'n8n-workflow';
 
 export class MatrixBotTrigger implements INodeType {
@@ -91,7 +92,7 @@ export class MatrixBotTrigger implements INodeType {
 			try {
 				// Fetch messages from the API
 				const options = {
-					method: 'GET',
+					method: 'GET' as IHttpRequestMethods,
 					uri: `${baseUrl}/messages`,
 					json: true,
 				};
@@ -160,7 +161,8 @@ export class MatrixBotTrigger implements INodeType {
 				}
 			} catch (error) {
 				// Log error but don't stop polling
-				this.logger.error(`Error polling for messages: ${error.message}`);
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				this.logger.error(`Error polling for messages: ${errorMessage}`);
 			}
 		};
 
@@ -168,11 +170,13 @@ export class MatrixBotTrigger implements INodeType {
 		await pollForMessages();
 
 		// Set up interval for subsequent polls
-		const intervalId = setInterval(pollForMessages, pollInterval * 1000);
+		const intervalObj = setInterval(async () => {
+			await pollForMessages();
+		}, pollInterval * 1000);
 
 		// Define the closeFunction that will be called when the trigger is deactivated
 		async function closeFunction() {
-			clearInterval(intervalId);
+			clearInterval(intervalObj);
 		}
 
 		return {

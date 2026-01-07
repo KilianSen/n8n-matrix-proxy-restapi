@@ -5,6 +5,7 @@ import {
 	INodeTypeDescription,
 	IDataObject,
 	NodeOperationError,
+	IHttpRequestMethods,
 } from 'n8n-workflow';
 
 export class MatrixBot implements INodeType {
@@ -12,7 +13,7 @@ export class MatrixBot implements INodeType {
 		displayName: 'Matrix Bot',
 		name: 'matrixBot',
 		icon: 'file:matrix.svg',
-		group: ['communication'],
+		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description: 'Interact with Matrix chat via REST API',
@@ -665,7 +666,7 @@ export class MatrixBot implements INodeType {
 				const operation = this.getNodeParameter('operation', i) as string;
 
 				let endpoint = '';
-				let method = 'GET';
+				let method: IHttpRequestMethods = 'GET';
 				let body: IDataObject = {};
 				let qs: IDataObject = {};
 
@@ -860,10 +861,14 @@ export class MatrixBot implements INodeType {
 				returnData.push(responseData as IDataObject);
 			} catch (error) {
 				if (this.continueOnFail()) {
-					returnData.push({ error: error.message });
+					const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+					returnData.push({ error: errorMessage });
 					continue;
 				}
-				throw new NodeOperationError(this.getNode(), error);
+				throw new NodeOperationError(
+					this.getNode(),
+					error instanceof Error ? error : new Error(String(error)),
+				);
 			}
 		}
 
