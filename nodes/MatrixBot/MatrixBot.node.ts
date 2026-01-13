@@ -37,6 +37,10 @@ export class MatrixBot implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
+						name: 'Authentication',
+						value: 'authentication',
+					},
+					{
 						name: 'Message',
 						value: 'message',
 					},
@@ -62,6 +66,34 @@ export class MatrixBot implements INodeType {
 					},
 				],
 				default: 'message',
+			},
+
+			// Authentication Operations
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+					},
+				},
+				options: [
+					{
+						name: 'Login',
+						value: 'login',
+						description: 'Login to Matrix with credentials or access token',
+						action: 'Login to Matrix',
+					},
+					{
+						name: 'Logout',
+						value: 'logout',
+						description: 'Logout from Matrix',
+						action: 'Logout from Matrix',
+					},
+				],
+				default: 'login',
 			},
 
 			// Message Operations
@@ -302,6 +334,99 @@ export class MatrixBot implements INodeType {
 					},
 				],
 				default: 'healthCheck',
+			},
+
+			// Authentication: Login operation fields
+			{
+				displayName: 'Homeserver',
+				name: 'homeserver',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+					},
+				},
+				default: '',
+				placeholder: 'https://matrix.org',
+				description: 'Matrix homeserver URL',
+			},
+			{
+				displayName: 'User ID',
+				name: 'userId',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+					},
+				},
+				default: '',
+				placeholder: '@user:example.com',
+				description: 'Matrix user ID',
+			},
+			{
+				displayName: 'Password',
+				name: 'password',
+				type: 'string',
+				typeOptions: {
+					password: true,
+				},
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+					},
+				},
+				default: '',
+				description: 'Password for login (leave empty if using access token)',
+			},
+			{
+				displayName: 'Access Token',
+				name: 'accessToken',
+				type: 'string',
+				typeOptions: {
+					password: true,
+				},
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+					},
+				},
+				default: '',
+				description: 'Existing access token (leave empty if using password)',
+			},
+			{
+				displayName: 'Additional Fields',
+				name: 'additionalFields',
+				type: 'collection',
+				placeholder: 'Add Field',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Device ID',
+						name: 'deviceId',
+						type: 'string',
+						default: '',
+						description: 'Device ID for consistent encryption',
+					},
+					{
+						displayName: 'Store Path',
+						name: 'storePath',
+						type: 'string',
+						default: '',
+						description: 'Path to store encryption keys',
+					},
+				],
 			},
 
 			// Message: Send operation fields
@@ -669,6 +794,40 @@ export class MatrixBot implements INodeType {
 				let method: IHttpRequestMethods = 'GET';
 				let body: IDataObject = {};
 				let qs: IDataObject = {};
+
+				// Authentication operations
+				if (resource === 'authentication') {
+					if (operation === 'login') {
+						endpoint = '/login';
+						method = 'POST';
+						const homeserver = this.getNodeParameter('homeserver', i) as string;
+						const userId = this.getNodeParameter('userId', i) as string;
+						const password = this.getNodeParameter('password', i, '') as string;
+						const accessToken = this.getNodeParameter('accessToken', i, '') as string;
+						const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
+
+						// Validate that at least one authentication method is provided
+						if (!password && !accessToken) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Either password or access token must be provided for login',
+								{ itemIndex: i },
+							);
+						}
+
+						body = {
+							homeserver,
+							user_id: userId,
+						};
+						if (password) body.password = password;
+						if (accessToken) body.access_token = accessToken;
+						if (additionalFields.deviceId) body.device_id = additionalFields.deviceId;
+						if (additionalFields.storePath) body.store_path = additionalFields.storePath;
+					} else if (operation === 'logout') {
+						endpoint = '/logout';
+						method = 'POST';
+					}
+				}
 
 				// Message operations
 				if (resource === 'message') {
