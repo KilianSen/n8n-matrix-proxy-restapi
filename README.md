@@ -10,6 +10,7 @@ This package provides two nodes for n8n:
 
 ### Matrix Bot Node
 A regular action node that allows you to:
+- **Authentication**: Login to Matrix server with credentials or access token, logout from Matrix
 - **Messages**: Send messages, get all received messages
 - **Rooms**: Create, join, leave rooms; manage room settings (name, topic); get room info, members, and messages
 - **Room Moderation**: Invite, kick, ban, and unban users
@@ -80,6 +81,18 @@ The node will automatically test the connection using the `/health` endpoint.
 ## Usage
 
 ### Matrix Bot Node
+
+#### Login to Matrix
+1. Select **Authentication** as the resource
+2. Select **Login** as the operation
+3. Enter the **Homeserver** URL (e.g., `https://matrix.org`)
+4. Enter your **User ID** (e.g., `@user:example.com`)
+5. Enter either **Password** or **Access Token**
+6. Optionally configure **Device ID** and **Store Path** in Additional Fields
+
+#### Logout from Matrix
+1. Select **Authentication** as the resource
+2. Select **Logout** as the operation
 
 #### Send a Message
 1. Select **Message** as the resource

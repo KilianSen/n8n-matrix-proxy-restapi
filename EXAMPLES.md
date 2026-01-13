@@ -2,7 +2,59 @@
 
 This directory contains example workflows demonstrating how to use the Matrix Bot nodes.
 
-## Example 1: Echo Bot
+## Example 1: Login and Send Message
+
+This workflow demonstrates how to login to Matrix and send a message.
+
+```json
+{
+  "name": "Matrix Login and Send",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "resource": "authentication",
+        "operation": "login",
+        "homeserver": "https://matrix.org",
+        "userId": "@mybot:matrix.org",
+        "password": "mypassword"
+      },
+      "name": "Login to Matrix",
+      "type": "n8n-nodes-matrix-bot.matrixBot",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "roomId": "!roomid:matrix.org",
+        "message": "Hello from n8n!"
+      },
+      "name": "Send Message",
+      "type": "n8n-nodes-matrix-bot.matrixBot",
+      "typeVersion": 1,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Login to Matrix", "type": "main", "index": 0}]]
+    },
+    "Login to Matrix": {
+      "main": [[{"node": "Send Message", "type": "main", "index": 0}]]
+    }
+  }
+}
+```
+
+## Example 2: Echo Bot
 
 This workflow listens for incoming messages and echoes them back to the sender.
 
@@ -40,7 +92,7 @@ This workflow listens for incoming messages and echoes them back to the sender.
 }
 ```
 
-## Example 2: Room Management
+## Example 3: Room Management
 
 Create a room and invite users:
 
@@ -78,7 +130,7 @@ Create a room and invite users:
 }
 ```
 
-## Example 3: Message Filter and Auto-Respond
+## Example 4: Message Filter and Auto-Respond
 
 Filter messages from a specific room and auto-respond to keywords:
 
@@ -139,7 +191,7 @@ Filter messages from a specific room and auto-respond to keywords:
 }
 ```
 
-## Example 4: Presence Management
+## Example 5: Presence Management
 
 Set bot presence based on time of day:
 
