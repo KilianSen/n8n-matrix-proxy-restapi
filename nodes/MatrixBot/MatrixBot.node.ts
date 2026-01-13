@@ -806,6 +806,15 @@ export class MatrixBot implements INodeType {
 						const accessToken = this.getNodeParameter('accessToken', i, '') as string;
 						const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 
+						// Validate that at least one authentication method is provided
+						if (!password && !accessToken) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Either password or access token must be provided for login',
+								{ itemIndex: i },
+							);
+						}
+
 						body = {
 							homeserver,
 							user_id: userId,
