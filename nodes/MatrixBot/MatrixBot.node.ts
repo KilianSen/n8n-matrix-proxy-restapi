@@ -37,6 +37,10 @@ export class MatrixBot implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
+						name: 'Authentication',
+						value: 'authentication',
+					},
+					{
 						name: 'Message',
 						value: 'message',
 					},
@@ -62,6 +66,152 @@ export class MatrixBot implements INodeType {
 					},
 				],
 				default: 'message',
+			},
+
+			// Authentication Operations
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+					},
+				},
+				options: [
+					{
+						name: 'Login',
+						value: 'login',
+						description: 'Login to Matrix with credentials or access token',
+						action: 'Login to Matrix',
+					},
+					{
+						name: 'Logout',
+						value: 'logout',
+						description: 'Logout from Matrix',
+						action: 'Logout from Matrix',
+					},
+				],
+				default: 'login',
+			},
+
+			// Authentication: Login operation fields
+			{
+				displayName: 'Homeserver',
+				name: 'homeserver',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+					},
+				},
+				default: '',
+				placeholder: 'https://matrix.example.com',
+				description: 'Matrix homeserver URL',
+			},
+			{
+				displayName: 'User ID',
+				name: 'userId',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+					},
+				},
+				default: '',
+				placeholder: '@user:example.com',
+				description: 'Matrix user ID',
+			},
+			{
+				displayName: 'Authentication Method',
+				name: 'authMethod',
+				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+					},
+				},
+				options: [
+					{
+						name: 'Password',
+						value: 'password',
+					},
+					{
+						name: 'Access Token',
+						value: 'accessToken',
+					},
+				],
+				default: 'password',
+				description: 'Method to authenticate with Matrix',
+			},
+			{
+				displayName: 'Password',
+				name: 'password',
+				type: 'string',
+				typeOptions: {
+					password: true,
+				},
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+						authMethod: ['password'],
+					},
+				},
+				default: '',
+				description: 'Password for Matrix login',
+			},
+			{
+				displayName: 'Access Token',
+				name: 'accessToken',
+				type: 'string',
+				typeOptions: {
+					password: true,
+				},
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+						authMethod: ['accessToken'],
+					},
+				},
+				default: '',
+				description: 'Existing Matrix access token',
+			},
+			{
+				displayName: 'Additional Options',
+				name: 'additionalOptions',
+				type: 'collection',
+				placeholder: 'Add Option',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['authentication'],
+						operation: ['login'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Device ID',
+						name: 'deviceId',
+						type: 'string',
+						default: '',
+						description: 'Device ID for consistent encryption',
+					},
+					{
+						displayName: 'Store Path',
+						name: 'storePath',
+						type: 'string',
+						default: '',
+						description: 'Path to store encryption keys',
+					},
+				],
 			},
 
 			// Message Operations
@@ -670,8 +820,43 @@ export class MatrixBot implements INodeType {
 				let body: IDataObject = {};
 				let qs: IDataObject = {};
 
+				// Authentication operations
+				if (resource === 'authentication') {
+					if (operation === 'login') {
+						endpoint = '/login';
+						method = 'POST';
+						const homeserver = this.getNodeParameter('homeserver', i) as string;
+						const userId = this.getNodeParameter('userId', i) as string;
+						const authMethod = this.getNodeParameter('authMethod', i) as string;
+						const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as IDataObject;
+
+						body = {
+							homeserver,
+							user_id: userId,
+						};
+
+						if (authMethod === 'password') {
+							const password = this.getNodeParameter('password', i) as string;
+							body.password = password;
+						} else if (authMethod === 'accessToken') {
+							const accessToken = this.getNodeParameter('accessToken', i) as string;
+							body.access_token = accessToken;
+						}
+
+						if (additionalOptions.deviceId) {
+							body.device_id = additionalOptions.deviceId;
+						}
+						if (additionalOptions.storePath) {
+							body.store_path = additionalOptions.storePath;
+						}
+					} else if (operation === 'logout') {
+						endpoint = '/logout';
+						method = 'POST';
+					}
+				}
+
 				// Message operations
-				if (resource === 'message') {
+				else if (resource === 'message') {
 					if (operation === 'send') {
 						endpoint = '/messages/send';
 						method = 'POST';
