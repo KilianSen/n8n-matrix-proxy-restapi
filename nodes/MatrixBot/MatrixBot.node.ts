@@ -873,7 +873,7 @@ export class MatrixBot implements INodeType {
 				description: 'Device ID to verify',
 			},
 
-			// Device: Transaction ID field (for accept, confirm, get emoji/decimals operations)
+			// Device: Transaction ID field (for all verification operations that need it)
 			{
 				displayName: 'Transaction ID',
 				name: 'transactionId',
@@ -882,28 +882,14 @@ export class MatrixBot implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['device'],
-						operation: ['acceptVerification', 'confirmVerification', 'getVerificationEmoji', 'getVerificationDecimals'],
+						operation: ['acceptVerification', 'confirmVerification', 'getVerificationEmoji', 'getVerificationDecimals', 'cancelVerification'],
 					},
 				},
 				default: '',
 				description: 'Verification transaction ID',
 			},
 
-			// Device: Cancel Verification operation fields
-			{
-				displayName: 'Transaction ID',
-				name: 'transactionId',
-				type: 'string',
-				required: true,
-				displayOptions: {
-					show: {
-						resource: ['device'],
-						operation: ['cancelVerification'],
-					},
-				},
-				default: '',
-				description: 'Verification transaction ID',
-			},
+			// Device: Cancel Verification reason field
 			{
 				displayName: 'Reason',
 				name: 'reason',
