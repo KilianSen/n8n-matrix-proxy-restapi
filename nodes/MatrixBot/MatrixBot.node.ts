@@ -304,6 +304,54 @@ export class MatrixBot implements INodeType {
 						description: 'Delete a device',
 						action: 'Delete a device',
 					},
+					{
+						name: 'Trust Room Devices',
+						value: 'trustRoomDevices',
+						description: 'Trust all devices of users in a specific room',
+						action: 'Trust room devices',
+					},
+					{
+						name: 'Start Verification',
+						value: 'startVerification',
+						description: 'Start interactive device verification (SAS)',
+						action: 'Start device verification',
+					},
+					{
+						name: 'Accept Verification',
+						value: 'acceptVerification',
+						description: 'Accept an incoming verification request',
+						action: 'Accept verification request',
+					},
+					{
+						name: 'Get Verification Emoji',
+						value: 'getVerificationEmoji',
+						description: 'Get emoji for SAS verification comparison',
+						action: 'Get verification emoji',
+					},
+					{
+						name: 'Get Verification Decimals',
+						value: 'getVerificationDecimals',
+						description: 'Get decimal codes for SAS verification comparison',
+						action: 'Get verification decimals',
+					},
+					{
+						name: 'Confirm Verification',
+						value: 'confirmVerification',
+						description: 'Confirm that emoji/decimals match',
+						action: 'Confirm verification',
+					},
+					{
+						name: 'Cancel Verification',
+						value: 'cancelVerification',
+						description: 'Cancel an ongoing verification',
+						action: 'Cancel verification',
+					},
+					{
+						name: 'Get Verification Sessions',
+						value: 'getVerificationSessions',
+						description: 'Get all active and recent verification sessions',
+						action: 'Get verification sessions',
+					},
 				],
 				default: 'getAll',
 			},
@@ -776,6 +824,85 @@ export class MatrixBot implements INodeType {
 				default: '',
 				description: 'The device ID to delete',
 			},
+
+			// Device: Trust Room Devices operation field
+			{
+				displayName: 'Room ID',
+				name: 'roomId',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['device'],
+						operation: ['trustRoomDevices'],
+					},
+				},
+				default: '',
+				placeholder: '!roomid:example.com',
+				description: 'The room ID to trust all devices in',
+			},
+
+			// Device: Start Verification operation fields
+			{
+				displayName: 'User ID',
+				name: 'userId',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['device'],
+						operation: ['startVerification'],
+					},
+				},
+				default: '',
+				placeholder: '@user:example.com',
+				description: 'Matrix user ID to verify',
+			},
+			{
+				displayName: 'Device ID',
+				name: 'deviceId',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['device'],
+						operation: ['startVerification'],
+					},
+				},
+				default: '',
+				description: 'Device ID to verify',
+			},
+
+			// Device: Transaction ID field (for all verification operations that need it)
+			{
+				displayName: 'Transaction ID',
+				name: 'transactionId',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['device'],
+						operation: ['acceptVerification', 'confirmVerification', 'getVerificationEmoji', 'getVerificationDecimals', 'cancelVerification'],
+					},
+				},
+				default: '',
+				description: 'Verification transaction ID',
+			},
+
+			// Device: Cancel Verification reason field
+			{
+				displayName: 'Reason',
+				name: 'reason',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['device'],
+						operation: ['cancelVerification'],
+					},
+				},
+				default: 'User cancelled',
+				description: 'Reason for cancellation',
+			},
 		],
 	};
 
@@ -993,6 +1120,48 @@ export class MatrixBot implements INodeType {
 						const deviceId = this.getNodeParameter('deviceId', i) as string;
 						endpoint = `/devices/${encodeURIComponent(deviceId)}`;
 						method = 'DELETE';
+					} else if (operation === 'trustRoomDevices') {
+						const roomId = this.getNodeParameter('roomId', i) as string;
+						endpoint = `/rooms/${encodeURIComponent(roomId)}/trust_devices`;
+						method = 'POST';
+					} else if (operation === 'startVerification') {
+						endpoint = '/devices/verify/start';
+						method = 'POST';
+						body = {
+							user_id: this.getNodeParameter('userId', i) as string,
+							device_id: this.getNodeParameter('deviceId', i) as string,
+						};
+					} else if (operation === 'acceptVerification') {
+						endpoint = '/devices/verify/accept';
+						method = 'POST';
+						body = {
+							transaction_id: this.getNodeParameter('transactionId', i) as string,
+						};
+					} else if (operation === 'getVerificationEmoji') {
+						const transactionId = this.getNodeParameter('transactionId', i) as string;
+						endpoint = `/devices/verify/${encodeURIComponent(transactionId)}/emoji`;
+						method = 'GET';
+					} else if (operation === 'getVerificationDecimals') {
+						const transactionId = this.getNodeParameter('transactionId', i) as string;
+						endpoint = `/devices/verify/${encodeURIComponent(transactionId)}/decimals`;
+						method = 'GET';
+					} else if (operation === 'confirmVerification') {
+						endpoint = '/devices/verify/confirm';
+						method = 'POST';
+						body = {
+							transaction_id: this.getNodeParameter('transactionId', i) as string,
+						};
+					} else if (operation === 'cancelVerification') {
+						endpoint = '/devices/verify/cancel';
+						method = 'POST';
+						body = {
+							transaction_id: this.getNodeParameter('transactionId', i) as string,
+						};
+						const reason = this.getNodeParameter('reason', i, '') as string;
+						if (reason) body.reason = reason;
+					} else if (operation === 'getVerificationSessions') {
+						endpoint = '/devices/verify/sessions';
+						method = 'GET';
 					}
 				}
 

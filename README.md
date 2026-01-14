@@ -16,7 +16,8 @@ A regular action node that allows you to:
 - **Room Moderation**: Invite, kick, ban, and unban users
 - **Presence**: Set online/offline/unavailable status
 - **Profile**: Get user profiles, set display name
-- **Devices**: List and delete devices
+- **Devices**: List and delete devices, manage device verification (SAS verification with emoji/decimal comparison)
+- **Device Verification**: Start, accept, confirm, or cancel interactive device verification; trust devices in rooms; get verification sessions
 - **Utilities**: Health checks, typing notifications, mark messages as read
 
 ### Matrix Bot Trigger Node
@@ -120,6 +121,34 @@ The node will automatically test the connection using the `/health` endpoint.
 1. Select **Presence** as the resource
 2. Select **Set** as the operation
 3. Choose presence status (online, offline, unavailable)
+
+#### Device Verification
+The node supports interactive device verification (SAS - Short Authentication String):
+
+##### Start Device Verification
+1. Select **Device** as the resource
+2. Select **Start Verification** as the operation
+3. Enter the **User ID** to verify
+4. Enter the **Device ID** to verify
+5. The response will include a transaction ID for subsequent steps
+
+##### Get Verification Emoji/Decimals
+1. Select **Device** as the resource
+2. Select **Get Verification Emoji** or **Get Verification Decimals**
+3. Enter the **Transaction ID** from the start verification step
+4. Compare the emoji or decimals shown on both devices
+
+##### Confirm or Cancel Verification
+1. Select **Device** as the resource
+2. Select **Confirm Verification** or **Cancel Verification**
+3. Enter the **Transaction ID**
+4. For cancellation, optionally provide a **Reason**
+
+##### Trust Room Devices
+1. Select **Device** as the resource
+2. Select **Trust Room Devices** as the operation
+3. Enter the **Room ID**
+4. This will trust all devices of all users in the room (use with caution)
 
 ### Matrix Bot Trigger Node
 
